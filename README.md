@@ -32,6 +32,8 @@ CMake教程提供了涵盖常见构建的分布指南 CMake 帮助解决的系�
 
 #### 有帮助的资源
 
+##### cmake_minmum_required()
+
 ```cmake
 cmake_minmum_required(VERSION <min>[...<policy_max>] [FATEL_ERROR])
 ```
@@ -45,6 +47,8 @@ _在3.12版本中新增了可选参数`<policy_max>`。_
 如果 CMake 的版本低于 3.12，那么`...`将被认为是一个版本组件的分割符，这就导致`...<max>`部分会被忽略，在3.12版本之前的行为将会被保留。
 
 `FATAL_ERROR`参数可以被接收，但是在 CMake 2.6 或者更高版本中，这个参数被忽略。我们应当指定它以确保 CMake 2.4 以及耕地版本构建失败时显示错误，而不仅仅是警告。
+
+##### project()
 
 ```cmake
 project(<PROJECT-NAME> [<language-name>...])
@@ -96,9 +100,38 @@ project(<PROJECT-NAME>
 
     如果没有设置语言，默认支持的语言是`C`和`CXX`。使用`NONE`语言或者使用`LANGUAGE`关键字但是不列举语言可以设置项目不对任何语言支持。
 
+##### add_executable()
+
+此命令用来添加可执行文件，可以添加：常规可执行文件、导入的可执行文件、可执行文件别名
+
+###### 常规可执行文件
+
+```cmake
+add_executable(<name> [WIN32] [MACOSX_BUNDLE]
+                [EXECLUDE_FROM_ALL]
+                [source1] [source2...])
+```
+该命令用于根据命令后面列出的源文件构建出名为`<name>`的可执行文件。`<name>`对应逻辑名称并且在项目中必须是全局唯一的。具体的可执行文件的扩展名则是基于当前的操作系统(例如name.exe或name.sh)。
+
+_3.11版本新特性：如果某个源文件在后面被加入了`target_sources()`中，那么它可以在这个指令中忽略。_
+
+可执行文件将默认在构建的目录树中生成。查看关于`RUNTIME_OUTPUT_DIRECTORY`的文档来改变输出的位置，查看关于`OUTPUT_NAME`的文档来改变最终文件的名称。
+
+###### 导入的可执行文件
+
+```cmake
+add_executable(<name> IMPOERTED [GLOBAL])
+```
+
+TODO
+
+###### 可执行文件的别名
+
+TODO
+
 #### 需要编辑的文件
 
-[CMakeLists.txt](./CMakeLists.txt)
+[CMakeLists.txt](./Help/guide/tutorial/Step1/CMakeLists.txt)
 
 #### 完成教程练习
 
@@ -134,3 +167,5 @@ cd Debug
 ```
 
 最后，尝试运行新构建的可执行程序。
+
+### 练习2：指定C++标准
