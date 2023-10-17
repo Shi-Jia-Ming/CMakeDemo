@@ -225,3 +225,182 @@ TODO
 #### 完成教程练习
 
 继续编辑Step1目录中的文件，从TODO4做到TODO6。首先，我们需要编辑tutorial.cxx，添加C++11标准中的一个新功能。然后更新CMakeLists.txt，以要求C++11标准。
+
+### 练习3：添加版本号并配置头文件
+
+有时候一个在源代码中同样有效的变量也是非常有帮助的。这种情况下，我们期望打印出项目的版本号。
+
+其中一种解决方法就是使用一个配置好的头文件。我们可以创建一个输入文件并使用一个或几个变量来代替。这些变量有特殊的语法，类似`@VAR@`。然后我们使用`configure_file()`命令把这个输入文件复制到一个给定的输出文件中并用CMakeLists.txt中的`VAR`变量的值代替。
+
+当我们可以直接在源代码中编辑版本时，使用这个特性是更常见的，因为它创建了真实的变量的单一来源，避免了重复。
+
+#### 目标
+
+定义并报告项目的版本号。
+
+#### 有帮助的资源
+
+##### <PROJECT-NAME>_VERSION_MAJOR
+
+变量`<PROJECT-NAME>_VERSION`的第一个版本号。（变量`<PROJECT-NAME>_VERSION`在[`project()`](#project())命令中被指定。）
+
+##### <PROJECT-NAME>_VERSION_MINOR
+
+变量`<PROJECT-NAME>_VERSION`的第一个版本号。（变量`<PROJECT-NAME>_VERSION`在[`project()`](#project())命令中被指定。）
+
+##### configure_file()
+
+该命令拷贝一个文件到另一个位置并修改它的内容。
+
+```cmake
+configure_file(<input> <output>
+                [NO_SOURCE_PERMISSIONS | USE_SOURCE_PERMISSIONS |
+                FILE_PERMISSIONS <permissions>...]
+                [COPYONLY] [ESCAPE_QUOTES] [@ONLY]
+                [NEWLINE_STYLE [UNIX|DOS|WIN32|LF|CRLF] ])
+```
+
+拷贝一个`<input>`文件到`<output>`文件并用`@VAR@`, `${VAR}`, `$CACHE{VAR}`或者`$ENV{VAR}`等的值替代文件中变量的值。每一个变量都会被当前的变量的值代替，如果变量没有指定，那就用空字符串来代替。除此之外，下面的这种定义方式：
+
+```cmake
+#cmakedefine VAR ...
+```
+
+也会被替换成
+
+```c
+#define VAR
+```
+
+如果CMakeLists.txt中定义如下：
+
+```cmake
+#cmakedefine01 VAR
+```
+
+在新的文件中将会被替换成：
+
+```c
+#define VAR 0
+#define VAR 1
+```
+
+如果CMakeLists.txt中定义如下：
+
+```cmake
+#cmakedefine01 VAR ...
+```
+
+在新的文件中将会被替换成：
+
+```c
+#define VAR ... 0
+#define VAR ... 1
+```
+
+这将导致一些错误。
+
+###### 参数列表
+
+- `<input>`：输入文件的路径。可以根据`CMAKE_CURRENT_SOURCE_DIR`来指定相对路径。这个参数必须是一个文件，不可以是文件夹。
+- `<output>`：输出文件的路径。根据`CMAKE_CURRENT_BINARY_DIR`来指定相对路径。如果值为现存的目录名，那么输出文件和输入文件的名称相同。如果路径包含一个不存在的目录，那么这个目录会被自动创建。
+
+- `NO_SOURCE_PERMISSIONS`：如果指定了这个选项，那么`<input>`文件的权限不会被拷贝。文件的默认权限是`0644`(-rw-r--r--)。
+- `USE_SOURCE_PERMISSIONS`：如果指定了这个选项，那么`<input>`文件的权限会被拷贝。
+- `FILE_PERMISSIONS <permissions> ...`：如果指定了这个选项，那么`<output>`文件的权限会忽略上面两个参数，被设置成`<permissions>`。`<permissions>`的格式和`chmod`命令的格式相同。
+- `COPYONLY`：如果指定了这个选项，那么`<input>`文件中的变量和其他内容不会被替换。这个参数通常不会与`NEWLINE_STYLE`一起使用。
+- `ESCAPE_QUOTES`：如果指定了这个选项，那么`<input>`文件中的双引号会被转义（C语言标准）。
+- `@ONLY`：如果指定了这个选项，那么`<input>`文件中只有`@VAR@`形式的变量会被替换。这个参数在配置要用到`${VAR}`的脚本的时候很有用。
+- `NEWLINE_STYLE [UNIX|DOS|WIN32|LF|CRLF]`：如果指定了这个选项，那么`<input>`文件中的换行符会被替换成指定的格式。默认的换行符是`UNIX`。
+
+###### 举例
+
+考虑一个源文件`foo.h.in`：
+
+```in
+#cmakedefine FOO_ENABLE
+#cmakedefine FOO_STRING "@FOO_STRING@"
+```
+
+邻近的CMakeLists.txt文件就可以使用该文件来生成头文件
+
+```cmake
+option(FOO_ENABLE "Enable Foo" ON)
+if(FOO_ENABLE)
+    set(FOO_STRING "foo")
+endif()
+configure_file(foo.h.in foo.h @ONLY)
+```
+
+这段命令在构建的目录中创建了一个foo.h文件，如果`FOO_ENABLE`被设置，那么文件的内容就是：
+
+```c
+#define FOO_ENABLE
+#define FOO_STRING "foo"
+```
+
+否则这个文件将包含：
+
+```c
+/* #undef FOO_ENABLE */
+/* #undef FOO_STRING */
+```
+
+然后就可以使用`target_include_directories()`命令将这个文件包含到目标中：
+
+```cmake
+target_include_directories(<target> [SYSTEM] <INTERFACE|PUBLIC|PRIVATE> "${CMAKE_CURRENT_BINARY_DIR}")
+```
+
+这样源代码就可以引用这个头文件：
+
+```c
+#include <foo.h>
+```
+
+##### target_include_directories()
+
+为目标添加包含头文件的目录。
+
+```cmake
+target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
+                            <INTERFACE|PUBLIC|PRIVATE> [items1...]
+                            [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+```
+
+当编译一个指定的目标时，CMake会在编译器的搜索路径中添加指定的目录。`<target>`必须是已经被创建的目标名，而且不能是一个目标别名。
+
+使用`AFTER`或`BEFORE`选项，可以控制目标包含的目录的顺序。`AFTER`表示目录会出现在包含列表的末尾，`BEFORE`表示目录会出现在包含列表的开头。如果省略了选项，那么目录会出现在包含列表的中间。
+
+`PUBLIC`, `INTERFACE`和`PRIVATE`选项指定包含目录的可见性。`PUBLIC`表示目录会被包含在生成规则中，`INTERFACE`表示目录只被包含在导入目标中，`PRIVATE`表示目录只被包含在目标中。
+
+_3.11版本新特性：`INTEFACE`可以被设定在导入的目标上。_
+
+如果对一个目标重复调用，那么添加的头文件目录将会按照调用顺序往后面追加。
+
+如果`SYSTEM`选项被指定，那么在一些平台CMake会告诉编译器这些目录是系统的头文件目录。
+
+#### 需要编辑的文件
+
+- [CMakeLists.txt](./Help/guide/tutorial/Step1/CMakeLists.txt)
+- [tutorial.cxx](./Help/guide/tutorial/Step1/tutorial.cxx)
+
+#### 完成教程练习
+
+从TODO7到TODO12。这次练习，我们通过CMakeLists.txt为项目添加版本号。同样是在这个文件中，使用`configure_file()`命令将一个给定的输入文件拷贝到输出文件并修改输入文件中的一些变量。
+
+接下来，创建一个输入头文件TutorialConfig.h.in，在这里定义版本号，这个版本号会被`configure_file()`命令替换。
+
+最后，更改tutorial.cxx文件，打印项目的版本号。
+
+#### 构建并运行
+
+重新构建并运行项目。
+
+```bash
+cd Step1_build
+cmake ../Step1
+cmake --build .
+```
+
+当不给函数传入参数的时候，函数就会输出版本号。
