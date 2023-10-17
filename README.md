@@ -131,7 +131,7 @@ TODO
 
 #### 需要编辑的文件
 
-[CMakeLists.txt](./Help/guide/tutorial/Step1/CMakeLists.txt)
+- [CMakeLists.txt](./Help/guide/tutorial/Step1/CMakeLists.txt)
 
 #### 完成教程练习
 
@@ -169,3 +169,59 @@ cd Debug
 最后，尝试运行新构建的可执行程序。
 
 ### 练习2：指定C++标准
+
+CMake 有一些特殊的变量，这些变量要么是在幕后创建的，要么在由项目代码设置时对 CMake 有意义。这些变量大多以`CMAKE_`开头。在你的项目中你应该避免发生重名。其中，有两个用户可以自己设置的、特殊的变量，分别是`CMAKE_CXX_STANDARD`和`CMAKE_CXX_STANDARD_REQUIRED`。这些可能会共同指定构建项目需要的C++标准。
+
+#### 目标
+
+添加关于C++11的标准。
+
+#### 有帮助的资源
+
+##### CMAKE_CXX_STANDARD
+
+_该属性为3.1版本新增的属性。_
+
+当`CMAKE_CXX_STANDARD`属性被指定，它的值就是`CXX_STANDARD`的默认值。
+
+##### CMAKE_CXX_STANDARD_REQUIRED
+
+当`CMAKE_CXX_STANDARD_REQUIRED`属性被指定，它的值就是`CXX_STANDARD_REQUIRED`的默认值。
+
+##### set()
+
+设置一个普通的、缓存的或者环境变量并给它们一个值。如果`<value>...`中指定了多个值，那么这些值将会以分号分隔并赋值给这个变量。
+
+###### 设置普通的变量
+
+```cmake
+set(<variable> <value>... [PARENT_SCOPE])
+```
+
+定义或释放(取消定义)当前函数或目录作用域中的变量`<variable>`。
+- 如果至少指定了一个`<value>`，那么这个变量将会被指定为这个值。
+- 如果没有指定`<value>`，那么这个变量将会被释放。
+
+如果`PARENT_SCOPE`被指定，则这个变量的作用域将变成当前作用域的父作用域。每一个函数或者目录都创建一个新的作用域，`block()`命令同样可以创建作用域。`set(PARENT_SCOPE)`将在父作用域设置变量的值，调用函数等。
+
+###### 设置缓存变量
+
+```cmake
+set(<variable> <value>... CACHE <type> <docstring> [FORCE])
+```
+
+TODO
+
+
+###### 设置环境变量
+
+TODO
+
+#### 需要编辑的文件
+
+- [CMakeLists.txt](./Help/guide/tutorial/Step1/CMakeLists.txt)
+- [tutorial.cxx](./Help/guide/tutorial/Step1/tutorial.cxx)
+
+#### 完成教程练习
+
+继续编辑Step1目录中的文件，从TODO4做到TODO6。首先，我们需要编辑tutorial.cxx，添加C++11标准中的一个新功能。然后更新CMakeLists.txt，以要求C++11标准。
